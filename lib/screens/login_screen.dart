@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:rive/rive.dart' show RiveAnimation;
+import 'package:rive/rive.dart'
+    show RiveAnimation, SMIBool, StateMachineController, Artboard;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -9,12 +10,17 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // Variable para controlar la visibilidad de la contraseña
   bool _isObscured = true;
+
+  StateMachineController? _controller;
+
+  SMIBool? _isChecking;
+  SMIBool? _isHandsUp;
+  SMIBool? _triggerSuccess;
+  SMIBool? _triggerFail;
 
   @override
   Widget build(BuildContext context) {
-    // Para obtener el tamaño de la pantalla y usarlo para el diseño responsive
     final Size size = MediaQuery.of(context).size;
 
     return Scaffold(
@@ -25,13 +31,42 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               SizedBox(
                 width: size.width,
-                height: 200, // Ajustar la altura del RiveAnimation
-                child: RiveAnimation.asset('animated_login_bear.riv'),
+                height: 200,
+                child: RiveAnimation.asset(
+                  'animated_login_bear.riv',
+                  stateMachines: const ['Login Machine'],
+                  onInit: (Artboard artboard) {
+                    _controller = StateMachineController.fromArtboard(
+                      artboard,
+                      'Login Machine',
+                    );
+
+                    if (_controller == null) return;
+
+                    artboard.addController(_controller!);
+
+                    _isChecking =
+                        _controller!.findSMI('isChecking') as SMIBool?;
+                    _isHandsUp = _controller!.findSMI('isHandsUp') as SMIBool?;
+                    _triggerSuccess =
+                        _controller!.findSMI('trigSuccess') as SMIBool?;
+                    _triggerFail = _controller!.findSMI('trigFail') as SMIBool?;
+                  },
+                ),
               ),
 
               const SizedBox(height: 10),
 
               TextField(
+                onChanged: (value) {
+                  if (_isHandsUp != null) {
+                    _isHandsUp!.value = false;
+                  }
+
+                  if (_isChecking != null) {
+                    _isChecking!.value = true;
+                  }
+                },
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
                   hintText: 'Email',
@@ -45,6 +80,16 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 10),
 
               TextField(
+                onChanged: (value) {
+                  if (_isChecking != null) {
+                    _isChecking!.value = false;
+                  }
+
+                  if (_isHandsUp != null) {
+                    _isHandsUp!.value = true;
+                  }
+                }, // ✅ ESTA COMA FALTABA (línea 104)
+
                 obscureText: _isObscured,
                 decoration: InputDecoration(
                   hintText: 'Password',
