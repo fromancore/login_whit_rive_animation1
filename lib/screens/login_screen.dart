@@ -19,6 +19,31 @@ class _LoginScreenState extends State<LoginScreen> {
   SMIBool? _triggerSuccess;
   SMIBool? _triggerFail;
 
+  //1.1) craear variables para FocusNode
+  final _emailFocusNode = FocusNode();
+  final _passwordFocusNode = FocusNode();
+
+  //1.2) agregar listeners a los FocusNode en initState (oyentes/chismosos)
+  @override
+  void initState() {
+    super.initState();
+
+    _emailFocusNode.addListener(() {
+      if (_emailFocusNode.hasFocus) {
+        //verifica que no sea nulo
+        if (_isHandsUp != null) {
+          //Manos abajo en el email
+          _isHandsUp?.change(false);
+        }
+      }
+    });
+
+    _passwordFocusNode.addListener(() {
+      //Manos arriba en password
+      _isHandsUp?.change(_passwordFocusNode.hasFocus);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
@@ -57,10 +82,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 10),
 
+              //Campo de texto email
               TextField(
+                //1.3) asignar el FocusNode al TextField
+                focusNode: _emailFocusNode,
                 onChanged: (value) {
                   if (_isHandsUp != null) {
-                    _isHandsUp!.value = false;
+                    //_isHandsUp!.value = false;
                   }
 
                   if (_isChecking != null) {
@@ -79,10 +107,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 10),
 
+              //Campo de texto password
               TextField(
+                //1.3) asignar el FocusNode al TextField
+                focusNode: _passwordFocusNode,
                 onChanged: (value) {
                   if (_isChecking != null) {
-                    _isChecking!.value = false;
+                    //_isChecking!.value = false;
                   }
 
                   if (_isHandsUp != null) {
@@ -114,5 +145,13 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  //1.4 liberar memoria
+  @override
+  void dispose() {
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
+    super.dispose();
   }
 }
