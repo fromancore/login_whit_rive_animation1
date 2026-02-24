@@ -86,8 +86,6 @@ Example of full application functionality:
 
 ![App Demo](demo.gif)
 
-> Replace `demo.gif` with your recorded demonstration file.
-
 ---
 
 ## 📚 Course Information
