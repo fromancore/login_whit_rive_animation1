@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
+import 'dart:async'; //3.1 Importa un timer
 import 'package:rive/rive.dart'
-    show RiveAnimation, SMIBool, StateMachineController, Artboard;
+    show
+        Artboard,
+        RiveAnimation,
+        SMIBool,
+        SMINumber,
+        SMITrigger,
+        StateMachineController;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,12 +23,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
   SMIBool? _isChecking;
   SMIBool? _isHandsUp;
-  SMIBool? _triggerSuccess;
-  SMIBool? _triggerFail;
+  SMITrigger? _triggerSuccess;
+  SMITrigger? _triggerFail;
+
+  //2.1 Variable para el recorrido de los ojos
+  SMINumber? _numLook;
 
   //1.1) craear variables para FocusNode
   final _emailFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
+
+  //3.2 Timaer para detener miradada al dejar de escribir
+  Timer? _typingDebounce;
 
   //1.2) agregar listeners a los FocusNode en initState (oyentes/chismosos)
   @override
@@ -34,6 +47,8 @@ class _LoginScreenState extends State<LoginScreen> {
         if (_isHandsUp != null) {
           //Manos abajo en el email
           _isHandsUp?.change(false);
+          //2.2) ojos mirando al frente
+          _numLook?.value = 50.0;
         }
       }
     });
@@ -74,8 +89,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         _controller!.findSMI('isChecking') as SMIBool?;
                     _isHandsUp = _controller!.findSMI('isHandsUp') as SMIBool?;
                     _triggerSuccess =
-                        _controller!.findSMI('trigSuccess') as SMIBool?;
-                    _triggerFail = _controller!.findSMI('trigFail') as SMIBool?;
+                        _controller!.findSMI('trigSuccess') as SMITrigger?;
+                    _triggerFail =
+                        _controller!.findSMI('trigFail') as SMITrigger?;
+                    //2.3 vincular numLook con el controlador
+                    _numLook = _controller!.findSMI('numLook') as SMINumber?;
                   },
                 ),
               ),
@@ -89,10 +107,34 @@ class _LoginScreenState extends State<LoginScreen> {
                 onChanged: (value) {
                   if (_isHandsUp != null) {
                     //_isHandsUp!.value = false;
+                    //_isChecking!.change(true);
                   }
 
                   if (_isChecking != null) {
                     _isChecking!.value = true;
+                    //2.4 Implementar numLook
+                    //Ajustes de límites de 0=100
+                    //80 como medida de calibración
+                    final look = (value.length / 80.0 * 100).clamp(
+                      0,
+                      100,
+                    ); // clamp para limitar el rango de valores
+
+                    _numLook?.value = look.toDouble();
+
+                    //3.3 Reiniciar el timer cada vez que se escribe
+                    //cancelar cualquier timer activo antes de iniciar uno nuevo
+                    _typingDebounce?.cancel();
+                    //crear nuevo timer
+                    _typingDebounce = Timer(
+                      const Duration(milliseconds: 800),
+                      () {
+                        //si se cierra la pantalla, quita el contador
+                        if (!mounted) return;
+                        //mirada neutra
+                        _isChecking?.change(false);
+                      },
+                    );
                   }
                 },
                 keyboardType: TextInputType.emailAddress,
@@ -152,6 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailFocusNode.dispose();
     _passwordFocusNode.dispose();
+    _typingDebounce?.cancel();
     super.dispose();
   }
 }
