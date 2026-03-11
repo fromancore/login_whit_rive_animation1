@@ -251,7 +251,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 MaterialButton(
                   minWidth: size.width,
                   height: 50,
-                  color: Colors.redAccent,
+                  color: Colors.blueAccent,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
