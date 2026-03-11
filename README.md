@@ -84,7 +84,7 @@ lib/
 
 Example of full application functionality:
 
-![App Demo](demo.gif)
+![App Demo](assets/demo.gif)
 
 ---
 
